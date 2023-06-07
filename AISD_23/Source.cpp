@@ -1,55 +1,69 @@
-#include <cstdio>
-#include <iostream>
-#include <conio.h>
-#include <vector>
+#include<iostream>
+#include<vector>
+
+template<typename Vertex, typename Distance = double>
+struct edge 
+{
+    Vertex dest;
+    Distance dist;
+    edge(Vertex a, Distance d) : dest(a), dist(d) {}
+};
+
+template<typename Vertex, typename Distance = double>
+struct vertex 
+{
+    std::vector<edge<Vertex, Distance>> edges;
+    Vertex name_e;
+    vertex(Vertex n) : name_e(n) {}
+};
+
 template<typename Vertex, typename Distance = double>
 class Graph 
 {
-public:
-    struct edge 
-    {
-        Vertex dest;
-        Distance dist;
-        edge(Vertex a, Distance d) : dest(a), dist(d) {}
-    };
+private:
+    std::vector<vertex<Vertex, Distance>> graph;
 
-    struct vertex 
+    vertex<Vertex, Distance> find_by_name(const Vertex name) 
     {
-        std::vector<edge> edges;
-        Vertex name_v;
-        vertex(Vertex v): name_v(v) {}
-    };
-
-    //проверка-добавление-удаление вершин
-    bool has_vertex(const Vertex& v) const
-    {
-        for (int i = 9; i < graph.size(); i++)
+        for (int i = 0; i < graph.size(); i++) 
         {
-            if (graph[i].name_v == v) return true;
+            if (graph[i].src == name) return graph[i];
+        }
+        return NULL;
+    }
+
+public:
+    bool has_vertex(const Vertex& v) const 
+    {
+        for (int i = 0; i < graph.size(); i++) 
+        {
+            if (graph[i].src == v) return true;
         }
         return false;
     }
-    bool add_vertex(const Vertex& v) {
-        if (!has_vertex(v))
+
+    bool add_vertex(const Vertex& v) 
+    {
+        if (!has_vertex(v)) 
         {
             graph.push_back(vertex(v));
             return true;
         }
-        else return false;
-
+        return false;
     }
+
     bool remove_vertex(const Vertex& v) 
     {
         if (has_vertex(v)) 
         {
             for (int i = 0; i < graph.size(); i++) 
             {
-                if (graph[i].name_e == v) graph.erase(i);
+                if (graph[i].src == v) graph.erase(i);
                 else 
                 {
                     for (int j = 0; j < graph[i].edges.size(); j++) 
                     {
-                        if (graph[i].edges[j].name_e == v) graph[i].edges.erase(j);
+                        if (graph[i].edges[j].dest == v) graph[i].edges.erase(j);
                     }
                 }
             }
@@ -57,28 +71,55 @@ public:
         }
         return false;
     }
-    std::vector<Vertex> vertices() const;
 
-    //проверка-добавление-удаление ребер
-    void add_edge(const Vertex& from, const Vertex& to,
-        const Distance& d);
-    bool remove_edge(const Vertex& from, const Vertex& to);
-    bool remove_edge(const Edge& e); //c учетом расстояния
-    bool has_edge(const Vertex& from, const Vertex& to) const;
-    bool has_edge(const Edge& e); //c учетом расстояния в Edge
+    std::vector<Vertex> vertices() const 
+    {
+        std::vector<Vertex> res;
+        for (int i = 0; i < graph.size(); i++) 
+        {
+            res.push_back(graph[i].src);
+        }
+        return res;
+    }
 
-    //получение всех ребер, выходящих из вершины
-    std::vector<Edge> edges(const Vertex& vertex);
+    bool has_edge(const Vertex src, const Vertex dest) const 
+    {
+        vertex a = find_by_name(src);
+        if (a && has_vertex(dest)) 
+        {
+            for (int i = 0; i < a.edges.size(); i++) 
+            {
+                if (a.edges[i].dest == dest) return true;
+            }
+        }
+        return false;
+    }
 
-    size_t order() const; //порядок
-    size_t degree() const; //степень
+    bool has_edge(const Vertex src, const edge<Vertex, Distance> e) { //c учетом расстояния в edge
+        vertex a = find_by_name(src);
+        if (a && has_vertex(e.dest)) 
+        {
+            for (int i = 0; i < a.edges.size(); i++) 
+            {
+                if ((a.edges[i].dest == e.dest) && a.edges[i].dist == e.dist) return true;
+            }
+        }
+        return false;
+    }
 
-    //поиск кратчайшего пути
-    std::vector<Edge> shortest_path(const Vertex& from,
-        const Vertex& to) const;
-    //обход
-    std::vector<Vertex>  walk(const Vertex& start_vertex)const;
+    void add_edge(const Vertex src, const Vertex dest, const Distance& d) 
+    {
 
-private:
-    std::vector<edge> graph;
+    }
+    bool remove_edge(const Vertex from, const Vertex to);
+    bool remove_edge(const edge<Vertex, Distance> e); //c учетом расстояния
+
+
 };
+
+int main() 
+{
+    vertex<char> k('a');
+    k.edges.push_back(edge<char, double>('b', 15));
+    return 0;
+}
