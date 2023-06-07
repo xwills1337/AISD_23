@@ -3,23 +3,60 @@
 #include <conio.h>
 #include <vector>
 template<typename Vertex, typename Distance = double>
-class Graph {
+class Graph 
+{
 public:
-    struct edge {
-        Vertex name_e;
+    struct edge 
+    {
+        Vertex dest;
         Distance dist;
-        edge(Vertex a, Distance d) : name_e(a), dist(d) {}
+        edge(Vertex a, Distance d) : dest(a), dist(d) {}
     };
 
-    struct vertex {
+    struct vertex 
+    {
         std::vector<edge> edges;
         Vertex name_v;
+        vertex(Vertex v): name_v(v) {}
     };
 
     //проверка-добавление-удаление вершин
-    bool has_vertex(const Vertex& v) const;
-    void add_vertex(const Vertex& v);
-    bool remove_vertex(const Vertex& v);
+    bool has_vertex(const Vertex& v) const
+    {
+        for (int i = 9; i < graph.size(); i++)
+        {
+            if (graph[i].name_v == v) return true;
+        }
+        return false;
+    }
+    bool add_vertex(const Vertex& v) {
+        if (!has_vertex(v))
+        {
+            graph.push_back(vertex(v));
+            return true;
+        }
+        else return false;
+
+    }
+    bool remove_vertex(const Vertex& v) 
+    {
+        if (has_vertex(v)) 
+        {
+            for (int i = 0; i < graph.size(); i++) 
+            {
+                if (graph[i].name_e == v) graph.erase(i);
+                else 
+                {
+                    for (int j = 0; j < graph[i].edges.size(); j++) 
+                    {
+                        if (graph[i].edges[j].name_e == v) graph[i].edges.erase(j);
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
     std::vector<Vertex> vertices() const;
 
     //проверка-добавление-удаление ребер
