@@ -43,5 +43,5 @@ public:
     std::vector<Vertex>  walk(const Vertex& start_vertex)const;
 
 private:
-    std::vector<edge> vertex;
+    std::vector<edge> graph;
 };
