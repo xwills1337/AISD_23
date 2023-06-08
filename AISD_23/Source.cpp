@@ -1,5 +1,7 @@
-#include<iostream>
-#include<vector>
+#include <cstdio>
+#include <iostream>
+#include <conio.h>
+#include <vector>
 #include<algorithm>
 template<typename Vertex, typename Distance = double>
 struct edge 
@@ -30,15 +32,6 @@ class Graph
 {
 private:
     std::vector<vertex<Vertex, Distance>> graph;
-
-    vertex<Vertex, Distance> find_by_name(const Vertex name) 
-    {
-        for (int i = 0; i < graph.size(); i++) 
-        {
-            if (graph[i].name_v == name) return graph[i];
-        }
-        return NULL;
-    }
 
     int index_by_name(const Vertex name) 
     {
@@ -99,28 +92,24 @@ public:
         return res;
     }
 
-    bool has_edge(const Vertex v, const Vertex dest) const 
+    bool has_edge(const Vertex v, const Vertex dest) 
     {
-        vertex a = find_by_name(v);
-        if (a && has_vertex(dest)) 
+        if (!has_vertex(v) || !has_vertex(dest)) return false;
+        for (int i = 0; i < graph[index_by_name(v)].edges.size(); i++)
         {
-            for (int i = 0; i < a.edges.size(); i++) 
-            {
-                if (a.edges[i].dest == dest) return true;
-            }
+            if (graph[index_by_name(v)].edges[i].dest == dest) return true;
         }
         return false;
     }
 
-    bool has_edge(const Vertex v, const edge<Vertex, Distance> e) { //c учетом расстояния в edge
-        vertex a = find_by_name(v);
-        if (a && has_vertex(e.dest)) 
+    bool has_edge(const Vertex v, const edge<Vertex, Distance> e) //c учетом расстояния в edge
+    {
+        if (!has_vertex(v) || !has_vertex(e.dest)) return false;
+        for (int i = 0; i < graph[index_by_name(v)].edges.size(); i++)
         {
-            for (int i = 0; i < a.edges.size(); i++) 
-            {
-                if (a.edges[i] == e) return true;
-            }
+            if (graph[index_by_name(v)].edges[i] == e) return true;
         }
+        return false;
         return false;
     }
 
@@ -161,7 +150,13 @@ public:
 
     std::vector<edge<Vertex, Distance>> edges(const Vertex name_v)
     {
-        return find_by_name(name_v).edges;
+        std::vector<edge<Vertex, Distance>> res;
+        if (has_vertex(name_v)) {
+            for (int i = 0; i < graph[index_by_name(name_v)].edges.size(); i++) {
+                res.push_back(graph[index_by_name(name_v)].edges[i]);
+            }
+        }
+        return res;
     }
 
     size_t order() const
@@ -169,18 +164,26 @@ public:
         return graph.size();
     }
 
-    size_t degree() const
+    size_t degree()
     {
         std::vector<int> count(graph.size(), 0);
         for (int i = 0; i < graph.size(); i++) 
         {
-            for (int j = 0; i < graph[i].edges.size(); j++) 
+            for (int j = 0; j < graph[i].edges.size(); j++) 
             {
                 count[i]++;
-                count[index_by_name(graph[i].edges.dest)]++;
+                count[index_by_name(graph[i].edges[j].dest)]++;
             }
         }
-        return std::max_element(count.begin(), count.end());
+
+        int max = 0;
+        if (count.size() > 0) max = count[0];
+        else return 0;
+        for (int i = 1; i < count.size(); i++) {
+            if (max < count[i]) max = count[i];
+        }
+
+        return max;
     }
     
     void print() const
@@ -196,7 +199,7 @@ public:
         }
     }
 
-    std::vector<Vertex>  walk(const Vertex& start_vertex) const
+    std::vector<Vertex>  walk(const Vertex& start_vertex)
     {
         if (!has_vertex(start_vertex)) throw "Error";
         std::vector<Vertex> queue;
@@ -234,7 +237,7 @@ public:
         return path;
     }
 
-    std::vector<Vertex>  walk_2(const Vertex& p, std::vector<bool>&labels) const
+    std::vector<Vertex>  walk_2(const Vertex& p, std::vector<bool>&labels)
     {
         std::vector<Vertex> path;
         vertex<Vertex, Distance> tmp = find_by_name(p);
@@ -253,7 +256,7 @@ public:
         }
         return path;
     }
-    std::vector<Vertex>  walk1(const Vertex& start_vertex) const
+    std::vector<Vertex>  walk1(const Vertex& start_vertex)
     {
         if (!has_vertex(start_vertex)) throw "Error";
         std::vector<Vertex> path;
@@ -282,6 +285,7 @@ public:
     }
 };
 
+
 int main() 
 {
     Graph<int, int> g;
@@ -289,6 +293,22 @@ int main()
     {
         g.add_vertex(i);
     }
-    if (g.has_vertex(8)) std::cout << "EEEEE";
+    g.add_edge(1, 2, 10);
+    g.add_edge(1, 4, 10);
+    g.add_edge(1, 6, 10);
+    g.add_edge(1, 8, 10);
+    g.add_edge(2, 1, 10);
+    g.add_edge(2, 4, 10);
+    g.add_edge(3, 5, 10);
+    g.add_edge(3, 6, 10);
+    g.add_edge(4, 7, 10);
+    g.add_edge(5, 1, 10);
+    g.add_edge(5, 3, 10);
+    g.add_edge(5, 8, 10);
+    g.add_edge(6, 1, 10);
+    g.add_edge(7, 2, 10);
+    g.add_edge(7, 8, 10);
+    g.add_edge(8, 1, 10);
     g.print();
+    std::cout << g.degree();
 }
