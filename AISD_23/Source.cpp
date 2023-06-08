@@ -82,7 +82,7 @@ public:
         return false;
     }
 
-    std::vector<Vertex> vertices() const 
+    std::vector<Vertex> vertices() 
     {
         std::vector<Vertex> res;
         for (int i = 0; i < graph.size(); i++) 
@@ -193,7 +193,7 @@ public:
             std::cout << "[" << graph[i].name_v << "]";
             for (int j = 0; j < graph[i].edges.size(); j++)
             {
-                std::cout << "<-[" << graph[i].edges[j].dest << "]";
+                std::cout << "-("<< graph[i].edges[j].dist <<")->[" << graph[i].edges[j].dest << "]";
             }
             std::cout << "\n";
         }
@@ -206,22 +206,21 @@ public:
         std::vector<Vertex> path;
         std::vector<bool> labels(graph.size(), false);
         queue.push_back(start_vertex);
-        labels[index_by_name(start_vertex)] = true;
         while (queue.size() > 0)
         {
             Vertex p = queue[0];
-            vertex<Vertex, Distance> tmp = find_by_name(p);
-            for (int i = 0; i < tmp.edges.size(); i++)
+            labels[index_by_name(p)] = true;
+            for (int i = 0; i < graph[index_by_name(p)].edges.size(); i++)
             {
-                if (!labels[index_by_name(tmp.edges[i].dest)])
+                if (!labels[index_by_name(graph[index_by_name(p)].edges[i].dest)])
                 {
-                    queue.push_back(tmp.edges[i].dest);
-                    labels[index_by_name(tmp.edges[i].dest)] = true;
+                    queue.push_back(graph[index_by_name(p)].edges[i].dest);
+                    labels[index_by_name(graph[index_by_name(p)].edges[i].dest)] = true;
                 }
             }
             path.push_back(p);
-            queue.erase(queue.begin() + index_by_name[p]);
-            if (queue.size() > 0)
+            queue.erase(queue.begin() + 0);
+            if (queue.size() == 0)
             {
                 for (int i = 0; i < graph.size(); i++)
                 {
@@ -237,52 +236,6 @@ public:
         return path;
     }
 
-    std::vector<Vertex>  walk_2(const Vertex& p, std::vector<bool>&labels)
-    {
-        std::vector<Vertex> path;
-        vertex<Vertex, Distance> tmp = find_by_name(p);
-        path.push_back(p);
-        labels[index_by_name(p)] = true;
-        for (int i = 0; i < tmp.edges.size(); i++)
-        {
-            if (!labels[index_by_name(tmp.edges[i].dest)])
-            {
-                std::vector<Vertex> path_2 = walk_2(tmp.edges[i].dest, labels);
-                for (int j = 0; j < path_2.size(); j++)
-                {
-                    path.push_back(path_2[j]);
-                }
-            }
-        }
-        return path;
-    }
-    std::vector<Vertex>  walk1(const Vertex& start_vertex)
-    {
-        if (!has_vertex(start_vertex)) throw "Error";
-        std::vector<Vertex> path;
-        std::vector<bool> labels(graph.size(), false);
-        Vertex p = start_vertex;
-        while (true)
-        {
-            std::vector<Vertex> path_2 = walk_2(p, labels);
-            for (int j = 0; j < path_2.size(); j++)
-            {
-                path.push_back(path_2[j]);
-            }
-            bool f = true;
-            for (int i = 0; i < graph.size(); i++)
-            {
-                if (labels[i] == false)
-                {
-                    p = graph[i].name_v;
-                    f = false;
-                    break;
-                }
-            }
-            if (f) break;
-        }
-        return path;
-    }
 };
 
 
@@ -305,10 +258,15 @@ int main()
     g.add_edge(5, 1, 10);
     g.add_edge(5, 3, 10);
     g.add_edge(5, 8, 10);
-    g.add_edge(6, 1, 10);
+    g.add_edge(6, 5, 10);
     g.add_edge(7, 2, 10);
     g.add_edge(7, 8, 10);
     g.add_edge(8, 1, 10);
     g.print();
-    std::cout << g.degree();
+    std::vector<int> a = g.walk(1);
+
+    for (int i = 0; i < a.size(); i++)
+    {
+        std::cout << a[i] << " ";
+    }
 }
