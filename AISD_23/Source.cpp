@@ -8,7 +8,7 @@ struct edge
 {
     Vertex dest;
     Distance dist;
-    edge(Vertex a, Distance d) : dest(a), dist(d) {}
+    edge(Vertex a = 0, Distance d = 0) : dest(a), dist(d) {}
     bool operator==(edge e) 
     {
         if ((this->dest == e.dest) && (this->dist == e.dist)) 
@@ -24,7 +24,7 @@ struct vertex
 {
     std::vector<edge<Vertex, Distance>> edges;
     Vertex name_v;
-    vertex(Vertex n) : name_v(n) {}
+    vertex(Vertex n = 0) : name_v(n) {}
 };
 
 template<typename Vertex, typename Distance = double>
@@ -199,6 +199,45 @@ public:
         }
     }
 
+    Vertex vertex_name(const int& i)
+    {
+        if (i >= 0 && i < graph.size()) return graph[i].name_v;
+        else throw "Error";
+    }
+
+    Distance shortest_path(const Vertex& from, const Vertex& to)
+    {
+        std::vector<Distance> paths(graph.size(), -1);
+        std::vector<bool> labels(graph.size(), false);
+
+        paths[index_by_name(from)] = 0;
+        labels[index_by_name(from)] = true;
+        Vertex p = from;
+        for (int i = 0; i < graph.size() - 1; i++)
+        {
+            for (int j = 0; j < graph[index_by_name(p)].edges.size(); j++)
+            {
+                if (!labels[index_by_name(graph[index_by_name(p)].edges[j].dest)])
+                {
+                    if (paths[index_by_name(p)] + graph[index_by_name(p)].edges[j].dist < paths[index_by_name(graph[index_by_name(p)].edges[j].dest)])
+                        paths[index_by_name(graph[index_by_name(p)].edges[j].dest)] = paths[index_by_name(p)] + graph[index_by_name(p)].edges[j].dist;
+                }
+            }
+            Distance min = -1;
+            for (int d = 0; d < graph.size(); d++)
+            {
+                if ((labels[index_by_name(graph[d].name_v)] == false) && (min > paths[index_by_name(graph[d].name_v)]))
+                {
+                    min = paths[index_by_name(graph[d].name_v)];
+                    p = graph[d].name_v;
+                }
+            }
+            labels[index_by_name(p)] = true;
+        }
+        return paths[index_by_name(to)];
+    }
+
+
     std::vector<Vertex>  walk(const Vertex& start_vertex)
     {
         if (!has_vertex(start_vertex)) throw "Error";
@@ -238,35 +277,62 @@ public:
 
 };
 
+template<typename Vertex, typename Distance = double>
+Vertex task(const Graph<Vertex, Distance>& g)
+{
+    int z = INT_MAX;
+    Vertex min = -1;
+    for (int i = 0; i < g.size(); i++)
+    {
+        Distance count = 0;
+        for (int j = 0; j < g.size(); j++)
+        {
+            count += g.shortest_path(i, j);
+        }
+        count = count / (g.size() - 1);
+        if (count < z)
+        {
+            z = count;
+            min = g.vertex_name(i);
+        }
+    }
+    return min;
+}
+
+template<typename V, typename D = double>
+void menu()
+{
+    Graph<V, D> g;
+    while (true)
+    {
+        system("cls");
+        g.print();
+        int z = getch();
+
+        system("cls");
+
+    }
+}
 
 int main() 
 {
-    Graph<int, int> g;
-    for (int i = 1; i < 9; i++)
+    std::cout << "Select the data type for the vertices\n1 - int\n2 - double\n3 - char\n";
+    int l = '0';
+    while (l != '1' && l != '2' && l != '3')
     {
-        g.add_vertex(i);
+        l = getch();
     }
-    g.add_edge(1, 2, 10);
-    g.add_edge(1, 4, 10);
-    g.add_edge(1, 6, 10);
-    g.add_edge(1, 8, 10);
-    g.add_edge(2, 1, 10);
-    g.add_edge(2, 4, 10);
-    g.add_edge(3, 5, 10);
-    g.add_edge(3, 6, 10);
-    g.add_edge(4, 7, 10);
-    g.add_edge(5, 1, 10);
-    g.add_edge(5, 3, 10);
-    g.add_edge(5, 8, 10);
-    g.add_edge(6, 5, 10);
-    g.add_edge(7, 2, 10);
-    g.add_edge(7, 8, 10);
-    g.add_edge(8, 1, 10);
-    g.print();
-    std::vector<int> a = g.walk(1);
-
-    for (int i = 0; i < a.size(); i++)
+    system("cls");
+    std::cout << "Select the data type for the distance\n1 - int\n2 - double\n";
+    int n = '0';
+    while (n != '1' && n != '2')
     {
-        std::cout << a[i] << " ";
+        n = getch();
     }
+    if (l == '1' && n == '1') menu<int, int>();
+    if (l == '2' && n == '1') menu<double, int>();
+    if (l == '3' && n == '1') menu<char, int>();
+    if (l == '1' && n == '2') menu<int, double>();
+    if (l == '2' && n == '2') menu<double, double>();
+    if (l == '3' && n == '2') menu<char, double>();
 }
