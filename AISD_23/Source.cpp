@@ -43,6 +43,35 @@ private:
     }
 
 public:
+
+    Graph() {}
+
+    Graph(std::vector < vertex<Vertex, Distance>>& Ver)
+    {
+        for (int i = 0; i < Ver.size(); i++)
+        {
+            if (!has_vertex(Ver[i].name_v))
+            {
+                for (int j = 0; j < Ver[i].edges.size(); j++)
+                {
+                    if (has_vertex(Ver[i].name_v, Ver[i].edges[j].dest)) throw "Error";
+                }
+                graph.push_back(Ver[i].name_v);
+            }
+            else throw "Error";
+        }
+    }
+
+    Graph& operator = (const Graph& p)
+    {
+        graph.clear();
+        for (int i = 0; i < p.graph.size(); i++)
+        {
+            graph.push_back(p.graph[i]);
+        }
+        return *this;
+    }
+
     bool has_vertex(const Vertex& v) const 
     {
         for (int i = 0; i < graph.size(); i++) 
@@ -92,6 +121,17 @@ public:
         return res;
     }
 
+    void add_edge(const Vertex v, const Vertex dest, const Distance& dist)
+    {
+        if (v == dest) throw "Error! Can't create a loop";
+        if (dist == 0) throw "Error! Distance can't be 0";
+        if (!has_edge(v, dest))
+        {
+            graph[index_by_name(v)].edges.push_back(edge<Vertex, Distance>(dest, dist));
+        }
+        else throw "Error! An edge with such vertices already exists";
+    }
+
     bool has_edge(const Vertex v, const Vertex dest) 
     {
         if (!has_vertex(v) || !has_vertex(dest)) return false;
@@ -110,16 +150,6 @@ public:
             if (graph[index_by_name(v)].edges[i] == e) return true;
         }
         return false;
-        return false;
-    }
-
-    bool add_edge(const Vertex v, const Vertex dest, const Distance& dist)
-    {
-        if (!has_edge(v, dest)) 
-        {
-            graph[index_by_name(v)].edges.push_back(edge<Vertex, Distance>(dest, dist));
-            return true;
-        }
         return false;
     }
 
@@ -190,16 +220,20 @@ public:
     {
         for (int i = 0; i < graph.size(); i++)
         {
-            std::cout << "[" << graph[i].name_v << "]";
-            for (int j = 0; j < graph[i].edges.size(); j++)
+            if (graph[i].edges.size() == 0) std::cout << "[" << graph[i].name_v << "]";
+            else
             {
-                std::cout << "-("<< graph[i].edges[j].dist <<")->[" << graph[i].edges[j].dest << "]";
+                for (int j = 0; j < graph[i].edges.size(); j++)
+                {
+                    std::cout << "[" << graph[i].name_v << "]";
+                    std::cout << "-(" << graph[i].edges[j].dist << ")->[" << graph[i].edges[j].dest << "]  ";
+                }
             }
-            std::cout << "\n";
+            std::cout << "\n\n";
         }
     }
 
-    Vertex vertex_name(const int& i)
+    Vertex vertex_name(const int i)
     {
         if (i >= 0 && i < graph.size()) return graph[i].name_v;
         else throw "Error";
@@ -277,6 +311,89 @@ public:
 
 };
 
+bool test_int(char* b)
+{
+    if (*b == '-') b++;
+    if (*b == 0) return false;
+    if (*b == '0' && *(b + 1) != 0) return false;
+    while (*b)
+    {
+        if (*b < '0' || *b>'9') return false;
+        b++;
+    }
+    return true;
+}
+bool test_unsigned_int(char* b)
+{
+    if (*b == 0 || *b == '0') return false;
+    while (*b)
+    {
+        if (*b < '0' || *b>'9') return false;
+        b++;
+    }
+    return true;
+}
+bool test_double(char* b)
+{
+    if (*b == '-') b++;
+    if (*b == 0 || *b == '.') return false;
+    if (*b == '0' && (*(b + 1) != 0 && *(b + 1) != '.')) return false;
+    while (*b != 0 && *b != '.')
+    {
+        if (*b < '0' || *b > '9') return false;
+        b++;
+    }
+    if (*b == '.')
+    {
+        b++;
+        if (*b == 0) return false;
+        while (*b)
+        {
+            if (*b < '0' || *b > '9') return false;
+            b++;
+        }
+    }
+    return true;
+}
+
+bool test_char(char* b)
+{
+    if (*b == 0) return false;
+    if (*(b + 1) != 0) return false;
+    return true;
+
+}
+
+template <class Type>
+Type scan()
+{
+    bool i = false;
+    while (true)
+    {
+        char* str = new char[256];
+        std::cin.getline(str, 256);
+        if (typeid(Type) == typeid(int)) i = test_int(str);
+        if (typeid(Type) == typeid(unsigned int)) i = test_unsigned_int(str);
+        if (typeid(Type) == typeid(double) || typeid(Type) == typeid(float)) i = test_double(str);
+        if (typeid(Type) == typeid(char)) i = test_char(str);
+        if (i)
+        {
+            Type x = 0;
+            if (typeid(Type) == typeid(int) || typeid(Type) == typeid(unsigned int)) x = atoi(str);
+            if (typeid(Type) == typeid(double) || typeid(Type) == typeid(float)) x = atof(str);
+            if (typeid(Type) == typeid(char)) x = str[0];
+            delete[] str;
+            return x;
+        }
+        else puts("Wrong data");
+        delete[]str;
+    }
+}
+
+
+
+
+
 template<typename Vertex, typename Distance = double>
 Vertex task(const Graph<Vertex, Distance>& g)
 {
@@ -307,10 +424,135 @@ void menu()
     {
         system("cls");
         g.print();
+        std::cout << "1 - create graph\n";
+        std::cout << "2 - add vertex\n";
+        std::cout << "3 - remove vertex\n";
+        std::cout << "4 - add edge\n";
+        std::cout << "5 - remove edge\n";
+        std::cout << "6 - get order and degree\n";
+        std::cout << "7 - walk\n";
+        std::cout << "8 - shortest_path\n";
+        std::cout << "9 - task\n";
+        std::cout << "esc - exit\n";
         int z = getch();
-
         system("cls");
+        if (z == '1')
+        {
+            Graph<V, D> y;
+            std::cout << "Enter number of vertices: ";
+            int count = scan<unsigned int>();
+            std::cout << "Enter vertex names\n";
+            for (int i = 0; i < count; i++)
+            {
+                std::cout << "V[" << i << "] = ";
+                while (true)
+                {
+                    V a = scan<V>();
+                    if (!y.has_vertex(a))
+                    {
+                        y.add_vertex(a);
+                        break;
+                    }
+                    else std::cout << "Such vertex already exists. Enter a different vertex name\n";
+                }
+            }
 
+            std::cout << "Enter number of edges (no more than the square of the number of vertices): ";
+            int count_2 = scan<unsigned int>();
+            while (true)
+            {
+                if (count_2 <= count * count) break;
+                else
+                {
+                    std::cout << "Error! Wrong data\n";
+                    count_2 = scan<unsigned int>();
+                }
+            }
+            std::cout << "Enter edges\n";
+            for (int i = 0; i < count_2; i++)
+            {
+                V start, end;
+                D Dis;
+                std::cout << "E[" << i << "]\n";
+                while (true)
+                {
+                    std::cout << "V start = ";
+                    V start = scan<V>();
+                    std::cout << "V end = ";
+                    V end = scan<V>();
+                    std::cout << "Distance = ";
+                    D Dis = scan<D>();
+                    if (y.has_vertex(start) && y.has_vertex(end) && (start != end) && !y.has_edge(start, end))
+                    {
+                        y.add_edge(start, end, Dis);
+                        break;
+                    }
+                    else std::cout << "Error! Wrong data\n";
+                }
+            }
+            g = y;
+        }
+
+        if (z == '2')
+        {
+            std::cout << "Enter vertex name\n";
+            V a = scan<V>();
+            if (!g.has_vertex(a)) g.add_vertex(a);
+            else
+            {
+                std::cout << "Error! This vertex is already in the graph\n";
+                if (getch()) z = '0';
+            }
+        }
+        if (z == '3')
+        {
+            std::cout << "Enter vertex name\n";
+            V a = scan<V>();
+            if (g.has_vertex(a)) g.remove_vertex(a);
+            else
+            {
+                std::cout << "Error! This vertex is not in the graph\n";
+                if (getch()) z = '0';
+            }
+        }
+        if (z == '4')
+        {
+            std::cout << "Enter vertex start\n";
+            V start = scan<V>();
+            std::cout << "Enter vertex end\n";
+            V end = scan<V>();
+            std::cout << "Enter distance\n";
+            D dis = scan<D>();
+
+            try
+            {
+                g.add_edge(start, end, dis);
+            }
+            catch (const char* msg)
+            {
+                std::cout << msg << std::endl;
+                if (getch()) z = '0';
+            }
+        }
+        if (z == '5')
+        {
+            std::cout << "Enter vertex start\n";
+            V start = scan<V>();
+            std::cout << "Enter vertex end\n";
+            V end = scan<V>();
+            if (g.has_edge(start, end)) g.remove_edge(start, end);
+            else
+            {
+                std::cout << "Error! This edge is not in the graph\n";
+                if (getch()) z = '0';
+            }
+        }
+        if (z == '6')
+        {
+            std::cout << "Order: " << g.order()<<"\n";
+            std::cout << "Degree: " << g.degree()<<"\n";
+        }
+        if (z == 27) break;
     }
 }
 
