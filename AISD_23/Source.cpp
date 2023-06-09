@@ -239,9 +239,9 @@ public:
         else throw "Error";
     }
 
-    Distance shortest_path(const Vertex& from, const Vertex& to)
+    std::vector<Vertex> shortest_path(const Vertex& from, const Vertex& to)
     {
-        std::vector<Distance> paths(graph.size(), -1);
+        std::vector<Distance> paths(graph.size(), INT_MAX);
         std::vector<bool> labels(graph.size(), false);
 
         paths[index_by_name(from)] = 0;
@@ -251,24 +251,58 @@ public:
         {
             for (int j = 0; j < graph[index_by_name(p)].edges.size(); j++)
             {
-                if (!labels[index_by_name(graph[index_by_name(p)].edges[j].dest)])
+                if (!labels[graph[index_by_name(p)].edges[j].dest])
                 {
                     if (paths[index_by_name(p)] + graph[index_by_name(p)].edges[j].dist < paths[index_by_name(graph[index_by_name(p)].edges[j].dest)])
                         paths[index_by_name(graph[index_by_name(p)].edges[j].dest)] = paths[index_by_name(p)] + graph[index_by_name(p)].edges[j].dist;
                 }
             }
-            Distance min = -1;
+            Distance min = INT_MIN;
             for (int d = 0; d < graph.size(); d++)
             {
-                if ((labels[index_by_name(graph[d].name_v)] == false) && (min > paths[index_by_name(graph[d].name_v)]))
+                if ((labels[index_by_name(graph[d].name_v)] == false) && (min > paths[d]))
                 {
-                    min = paths[index_by_name(graph[d].name_v)];
+                    min = paths[d];
                     p = graph[d].name_v;
                 }
             }
             labels[index_by_name(p)] = true;
+
+            std::vector<Vertex> short_path;
+            short_path.push_back(to);
+            int q = index_by_name(to);
+            for (int x = 0; x < paths.size(); x++)
+            {
+                for (int i = 0; i < paths.size(); i++)
+                {
+                    if (i != q)
+                    {
+                        for (int j = 0; j < graph[i].edges.size(); j++)
+                        {
+                            if (index_by_name(graph[i].edges[j].dest) == q)
+                            {
+                                if (paths[i] + graph[i].edges[j].dist == paths[q])
+                                {
+                                    short_path.push_back(graph[i].name_v);
+                                    q = i;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    if (q == index_by_name(from))
+                    {
+                        for (int z = 0; z < short_path.size() / 2; z++)
+                        {
+                            Vertex k = short_path[z];
+                            short_path[z] = short_path[short_path.size() - 1 - z];
+                            short_path[short_path.size() - 1 - z] = k;
+                        }
+                        return short_path;
+                    }
+                }
+            }
         }
-        return paths[index_by_name(to)];
     }
 
 
@@ -551,6 +585,37 @@ void menu()
         {
             std::cout << "Order: " << g.order()<<"\n";
             std::cout << "Degree: " << g.degree()<<"\n";
+            if (getch()) z = '0';
+        }
+        if (z == '7')
+        {
+            std::cout << "Enter vertex start name\n";
+            V start = scan<V>();
+            if (g.has_vertex(start))
+            {
+                std::cout << "Bypass in width\n";
+                std::vector<V> a = g.walk(start);
+                for (int i = 0; i < a.size(); i++) std::cout << a[i] << " ";
+                std::cout << "\n";
+            }
+            else std::cout << "Error! This vertex is not in the graph\n";
+            if (getch()) z = '0';
+        }
+        if (z == '8')
+        {
+            std::cout << "Enter vertex start\n";
+            V start = scan<V>();
+            std::cout << "Enter vertex end\n";
+            V end = scan<V>();
+            if (g.has_vertex(start) && g.has_vertex(end))
+            {
+                std::cout << "Shortest path\n";
+                std::vector<V> a = g.shortest_path(start, end);
+                for (int i = 0; i < a.size(); i++) std::cout << a[i] << " ";
+                std::cout << "\n";
+            }
+            else std::cout << "Error! This vertex(s) is not in the graph\n";
+            if (getch()) z = '0';
         }
         if (z == 27) break;
     }
